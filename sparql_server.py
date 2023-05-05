@@ -71,12 +71,13 @@ from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments
 model.generation_config.use_cache = False 
 training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
+    logging_dir='./logs'
     evaluation_strategy="steps",
     learning_rate=2e-5,
     per_device_train_batch_size=2,
     per_device_eval_batch_size=2,
     weight_decay=0.01,
-    num_train_epochs=1,
+    num_train_epochs=2,
     gradient_accumulation_steps = 8,
     save_total_limit= 1,
     load_best_model_at_end= True,
