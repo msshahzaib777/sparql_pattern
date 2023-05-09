@@ -4,22 +4,24 @@ import numpy as np
 import pandas as pd
 import random
 import torch
+print("Clearing Cache")
 torch.cuda.empty_cache()
 import gc
 gc.collect()
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 device
-
+print("setting config")
 MAX_LENGTH = 1024
 BATCH_SIZE = 2
 EOS = "<|endoftext|>"
 PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
+print("loading Data")
 with open('SPARQL_PTRN_50k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
-
+print("loading model")
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 checkpoint = "sparql_model_gpt2_2/checkpoint-966"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
@@ -35,7 +37,7 @@ np.random.seed(seed_val)
 torch.manual_seed(seed_val)
 torch.cuda.manual_seed_all(seed_val)
 
-
+print("processing Data")
 def preprocess_function(examples):
         _examples = []
         attention_mask = []
@@ -66,24 +68,24 @@ tokenized_dataset = dataset.map(preprocess_function, batched=True)
 #     tokenized_trainset.append(tokenized_dataset["train"][i])
 # tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
-
+print("Setting Trainer Arg")
 from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments
 model.generation_config.use_cache = False 
 training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
-    logging_dir='./logs',
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=2,
-    per_device_eval_batch_size=2,
+    per_device_train_batch_size=1,
+    per_device_eval_batch_size=1,
     weight_decay=0.01,
     num_train_epochs=2,
-    gradient_accumulation_steps = 8,
+    gradient_accumulation_steps = 32,
     save_total_limit= 1,
     load_best_model_at_end= True,
     predict_with_generate=True,
     fp16=True,
     logging_steps= 700,
+    logging_dir='./logs',
     eval_steps= 700,
     save_steps= 700
 )
@@ -95,4 +97,29 @@ trainer = Trainer(
     eval_dataset=tokenized_dataset["test"],
     tokenizer=tokenizer,
 )
+
+print("Training ... ")
 trainer.train()
+
+# from tqdm.notebook import tqdm
+# correct = 0
+# generated = []
+# for i in tqdm(range(0, 1000)):
+#     sample = tokenized_dataset["test"][i]
+    
+#     sample_idx = sample['sum_idx']-1
+#     response = model.generate(torch.tensor([sample["input_ids"][:sample_idx]]).cuda(), \
+#                               attention_mask = torch.tensor([sample["attention_mask"][:sample_idx]]).cuda(),
+#                                max_length=len(sample["input_ids"])+5, temperature=1.0,
+#                              top_k=50,
+#                              top_p=0.95,
+#                              repetition_penalty=1.0,
+#                              do_sample=True,
+#                              num_return_sequences=1,
+#                              length_penalty=2.0,
+#                              early_stopping=True, pad_token_id=tokenizer.pad_token_id, use_cache=False)
+#     predicted_query = tokenizer.decode(response[0][sample["sum_idx"]-1:-1]).strip()
+#     actual_query = sample["sparql"]
+#     generated.append({"sample": sample, 'predicted query': predicted_query})
+#     if(predicted_query == actual_query.replace("?", "") ):
+#         correct +=1
