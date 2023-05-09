@@ -107,7 +107,7 @@ trainer = Trainer(
     train_dataset=tokenized_dataset["train"],
     eval_dataset=tokenized_dataset["test"],
     tokenizer=tokenizer,
-
+    callbacks=[PrintCallback]
 )
 
 print("Training ... ")
