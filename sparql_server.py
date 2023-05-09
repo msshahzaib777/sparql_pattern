@@ -69,17 +69,17 @@ tokenized_dataset = dataset.map(preprocess_function, batched=True)
 # tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
 print("Setting Trainer Arg")
-from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments
+from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments, TrainerCallback
 model.generation_config.use_cache = False 
 training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=1,
-    per_device_eval_batch_size=1,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
     weight_decay=0.01,
     num_train_epochs=2,
-    gradient_accumulation_steps = 32,
+    gradient_accumulation_steps = 3,
     save_total_limit= 1,
     load_best_model_at_end= True,
     predict_with_generate=True,
@@ -90,12 +90,24 @@ training_args = Seq2SeqTrainingArguments(
     save_steps= 700
 )
 
+class PrinterCallback(TrainerCallback):
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        _ = logs.pop("total_flos", None)
+        if state.is_local_process_zero:
+            print(logs)
+
+    def on_step_begin(self, args, state, control, logs=None, **kwargs):
+        print("Step end", logs)
+    def on_step_end(self, args, state, control, logs=None, **kwargs):
+        print("Step begin", logs)
+
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=tokenized_dataset["train"],
     eval_dataset=tokenized_dataset["test"],
     tokenizer=tokenizer,
+
 )
 
 print("Training ... ")
