@@ -18,12 +18,12 @@ PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
 print("loading Data")
-with open('SPARQL_PTRN_50k.pickle', 'rb') as f:
+with open('SPARQL_PTRN_500k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
-checkpoint = "sparql_model_gpt2_2/checkpoint-966"
+checkpoint = "sparql_model_gpt2_2/checkpoint-4200"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # special_tokens = {'pad_token':'<|pad|>','sep_token':'<|sep|>', 'bos_token': '<|startoftext|>'}
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
@@ -75,17 +75,17 @@ training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
+    per_device_train_batch_size=32,
+    per_device_eval_batch_size=32,
     weight_decay=0.01,
     num_train_epochs=2,
     gradient_accumulation_steps = 3,
-    save_total_limit= 1,
+    save_total_limit= 2,
     load_best_model_at_end= True,
     predict_with_generate=True,
     fp16=True,
     logging_steps= 700,
-    logging_dir='./logs',
+#    logging_dir='./logs',
     eval_steps= 700,
     save_steps= 700
 )
