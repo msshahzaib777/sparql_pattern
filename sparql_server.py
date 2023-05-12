@@ -18,7 +18,7 @@ PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
 print("loading Data")
-with open('SPARQL_PTRN_500k.pickle', 'rb') as f:
+with open('SPARQL_PTRN_200k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
