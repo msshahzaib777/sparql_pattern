@@ -111,6 +111,7 @@ trainer = Trainer(
 )
 
 print("Training ... ")
+
 trainer.train()
 
 # from tqdm.notebook import tqdm
