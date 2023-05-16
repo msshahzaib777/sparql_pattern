@@ -23,7 +23,7 @@ with open('SPARQL_PTRN_600k.pickle', 'rb') as f:
 
 print("loading model")
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
-checkpoint = "sparql_model_gpt2_2/checkpoint-21000"
+checkpoint = "sparql_model_gpt2_2/checkpoint"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # special_tokens = {'pad_token':'<|pad|>','sep_token':'<|sep|>', 'bos_token': '<|startoftext|>'}
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
@@ -78,7 +78,7 @@ training_args = Seq2SeqTrainingArguments(
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
     weight_decay=0.01,
-    num_train_epochs=2,
+    num_train_epochs=5,
     gradient_accumulation_steps = 1,
     save_total_limit= 1,
     load_best_model_at_end= True,
