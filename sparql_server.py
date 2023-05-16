@@ -18,12 +18,12 @@ PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
 print("loading Data")
-with open('SPARQL_PTRN_200k.pickle', 'rb') as f:
+with open('SPARQL_PTRN_600k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
-checkpoint = "sparql_model_gpt2_2/checkpoint-4200"
+checkpoint = "sparql_model_gpt2_2/checkpoint-21000"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # special_tokens = {'pad_token':'<|pad|>','sep_token':'<|sep|>', 'bos_token': '<|startoftext|>'}
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
@@ -79,15 +79,15 @@ training_args = Seq2SeqTrainingArguments(
     per_device_eval_batch_size=32,
     weight_decay=0.01,
     num_train_epochs=2,
-    gradient_accumulation_steps = 3,
-    save_total_limit= 2,
+    gradient_accumulation_steps = 1,
+    save_total_limit= 1,
     load_best_model_at_end= True,
     predict_with_generate=True,
     fp16=True,
-    logging_steps= 700,
+    logging_steps= 1000,
 #    logging_dir='./logs',
-    eval_steps= 700,
-    save_steps= 700
+    eval_steps= 1000,
+    save_steps= 1000
 )
 
 class PrintCallback(TrainerCallback):
@@ -114,25 +114,31 @@ print("Training ... ")
 
 trainer.train()
 
-# from tqdm.notebook import tqdm
-# correct = 0
-# generated = []
-# for i in tqdm(range(0, 1000)):
-#     sample = tokenized_dataset["test"][i]
+from tqdm.notebook import tqdm
+correct = 0
+generated = []
+for i in tqdm(range(0, 2480)):
+    sample = tokenized_dataset["test"][i]
     
-#     sample_idx = sample['sum_idx']-1
-#     response = model.generate(torch.tensor([sample["input_ids"][:sample_idx]]).cuda(), \
-#                               attention_mask = torch.tensor([sample["attention_mask"][:sample_idx]]).cuda(),
-#                                max_length=len(sample["input_ids"])+5, temperature=1.0,
-#                              top_k=50,
-#                              top_p=0.95,
-#                              repetition_penalty=1.0,
-#                              do_sample=True,
-#                              num_return_sequences=1,
-#                              length_penalty=2.0,
-#                              early_stopping=True, pad_token_id=tokenizer.pad_token_id, use_cache=False)
-#     predicted_query = tokenizer.decode(response[0][sample["sum_idx"]-1:-1]).strip()
-#     actual_query = sample["sparql"]
-#     generated.append({"sample": sample, 'predicted query': predicted_query})
-#     if(predicted_query == actual_query.replace("?", "") ):
-#         correct +=1
+    sample_idx = sample['sum_idx']-1
+    response = model.generate(torch.tensor([sample["input_ids"][:sample_idx]]).cuda(), \
+                              attention_mask = torch.tensor([sample["attention_mask"][:sample_idx]]).cuda(),
+                               max_length=len(sample["input_ids"])+5, temperature=0.5,
+                             top_k=50,
+                             top_p=0.95,
+                             repetition_penalty=1.0,
+                             do_sample=True,
+                             num_return_sequences=1,
+                             length_penalty=2.0,
+                             early_stopping=True, pad_token_id=tokenizer.pad_token_id, use_cache=False)
+    predicted_query = tokenizer.decode(response[0][sample["sum_idx"]-1:-1]).strip()
+    actual_query = sample["sparql"]
+    generated.append({"sample": sample, 'predicted query': predicted_query})
+    if(predicted_query == actual_query.replace("?", "") ):
+        correct +=1
+        
+count  = 0
+for i in generated:
+    if(i["sample"]["sparql"].replace("?", "") != i["predicted query"].replace(".", " .")):
+        count += 1
+print((2480 - count)/2480)
