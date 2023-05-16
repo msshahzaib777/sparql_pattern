@@ -114,31 +114,25 @@ print("Training ... ")
 
 trainer.train()
 
-from tqdm.notebook import tqdm
 correct = 0
 generated = []
-for i in tqdm(range(0, 2480)):
+for i in range(0, 2480):
     sample = tokenized_dataset["test"][i]
     
     sample_idx = sample['sum_idx']-1
     response = model.generate(torch.tensor([sample["input_ids"][:sample_idx]]).cuda(), \
                               attention_mask = torch.tensor([sample["attention_mask"][:sample_idx]]).cuda(),
-                               max_length=len(sample["input_ids"])+5, temperature=0.5,
-                             top_k=50,
-                             top_p=0.95,
-                             repetition_penalty=1.0,
-                             do_sample=True,
-                             num_return_sequences=1,
-                             length_penalty=2.0,
-                             early_stopping=True, pad_token_id=tokenizer.pad_token_id, use_cache=False)
+                               max_length=len(sample["input_ids"])+5, temperature=0.7,
+                                 top_k=50,
+                                 top_p=0.95,
+                                 repetition_penalty=1.0,
+                                 do_sample=True,
+                                 num_return_sequences=1,
+                                 length_penalty=2.0,
+                                 early_stopping=True, pad_token_id=tokenizer.pad_token_id, use_cache=False)
     predicted_query = tokenizer.decode(response[0][sample["sum_idx"]-1:-1]).strip()
     actual_query = sample["sparql"]
     generated.append({"sample": sample, 'predicted query': predicted_query})
-    if(predicted_query == actual_query.replace("?", "") ):
+    if(predicted_query.replace(".", " .") == actual_query.replace("?", "") ):
         correct +=1
-        
-count  = 0
-for i in generated:
-    if(i["sample"]["sparql"].replace("?", "") != i["predicted query"].replace(".", " .")):
-        count += 1
-print((2480 - count)/2480)
+print(correct/2480)
