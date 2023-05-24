@@ -1,9 +1,11 @@
 import datasets
-import pickle
+import pickle5 as pickle
 import numpy as np
 import pandas as pd
 import random
 import torch
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments, TrainerCallback
 print("Clearing Cache")
 torch.cuda.empty_cache()
 import gc
@@ -22,8 +24,7 @@ with open('SPARQL_PTRN_600k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
-checkpoint = "sparql_model_gpt2_2/checkpoint"
+checkpoint = "sparql_model_gpt2_2/latest-checkpoint"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # special_tokens = {'pad_token':'<|pad|>','sep_token':'<|sep|>', 'bos_token': '<|startoftext|>'}
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
@@ -56,20 +57,19 @@ def preprocess_function(examples):
 
 tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
+tokenized_evalset = []
+for i in range(0,15):
+    tokenized_evalset.append(tokenized_dataset["test"][i])
+tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
 
-# tokenized_evalset = []
-# for i in range(0,1500):
-#     tokenized_evalset.append(tokenized_dataset["test"][i])
-# tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
 
-
-# tokenized_trainset = []
-# for i in range(10000,15000):
-#     tokenized_trainset.append(tokenized_dataset["train"][i])
-# tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
+tokenized_trainset = []
+for i in range(0,150):
+    tokenized_trainset.append(tokenized_dataset["train"][i])
+tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
 print("Setting Trainer Arg")
-from transformers import TrainingArguments, Trainer, Seq2SeqTrainingArguments, TrainerCallback
+
 model.generation_config.use_cache = False 
 training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
@@ -78,16 +78,15 @@ training_args = Seq2SeqTrainingArguments(
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
     weight_decay=0.01,
-    num_train_epochs=5,
+    num_train_epochs=10,
     gradient_accumulation_steps = 1,
     save_total_limit= 1,
-    load_best_model_at_end= True,
     predict_with_generate=True,
     fp16=True,
-    logging_steps= 1000,
+    logging_steps= 3,
 #    logging_dir='./logs',
-    eval_steps= 1000,
-    save_steps= 1000
+    eval_steps= 3,
+    save_steps= 3
 )
 
 class PrintCallback(TrainerCallback):
