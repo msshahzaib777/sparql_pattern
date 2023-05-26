@@ -23,3 +23,6 @@
 /util_dataprep_lcquad.py
 /__pycache__
 /sky-pilot/*
+cloud_data/latest-checkpoint.zip
+cloud_data/SPARQL_PTRN_600k.pickle
+requirements.txt
