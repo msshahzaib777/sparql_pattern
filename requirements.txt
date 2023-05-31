@@ -34,7 +34,6 @@ nvidia-nvtx-cu11==11.7.91
 packaging==23.1
 pandas==2.0.1
 Pillow==9.3.0
-pickle==4.0
 pyarrow==12.0.0
 python-dateutil==2.8.2
 pytz==2023.3
