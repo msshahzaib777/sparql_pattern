@@ -1,5 +1,5 @@
 import datasets
-import pickle5 as pickle
+import pickle as pickle
 import numpy as np
 import pandas as pd
 import random
@@ -20,7 +20,7 @@ PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
 print("loading Data")
-with open('SPARQL_PTRN_600k.pickle', 'rb') as f:
+with open('cloud_data2/SPARQL_PTRN_600k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
@@ -30,7 +30,9 @@ tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
 model = GPT2LMHeadModel.from_pretrained(checkpoint)
 # model.resize_token_embeddings(len(tokenizer))
-model.cuda()
+
+# model.cuda()
+
 model.gradient_checkpointing_enable()
 seed_val = 42
 random.seed(seed_val)
@@ -57,16 +59,19 @@ def preprocess_function(examples):
 
 tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
-tokenized_evalset = []
-for i in range(0,15):
-    tokenized_evalset.append(tokenized_dataset["test"][i])
-tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
+with open('processed.pickle', 'wb') as f:
+    pickle.dump(tokenized_dataset, f)
+
+# tokenized_evalset = []
+# for i in range(0,15):
+#     tokenized_evalset.append(tokenized_dataset["test"][i])
+# tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
 
 
-tokenized_trainset = []
-for i in range(0,150):
-    tokenized_trainset.append(tokenized_dataset["train"][i])
-tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
+# tokenized_trainset = []
+# for i in range(0,150):
+#     tokenized_trainset.append(tokenized_dataset["train"][i])
+# tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
 print("Setting Trainer Arg")
 
@@ -75,18 +80,18 @@ training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=32,
-    per_device_eval_batch_size=32,
+    per_device_train_batch_size=2,
+    per_device_eval_batch_size=2,
     weight_decay=0.01,
     num_train_epochs=10,
-    gradient_accumulation_steps = 1,
+    gradient_accumulation_steps = 26,
     save_total_limit= 1,
     predict_with_generate=True,
     fp16=True,
-    logging_steps= 3,
+    logging_steps= 700,
 #    logging_dir='./logs',
-    eval_steps= 3,
-    save_steps= 3
+    eval_steps= 700,
+    save_steps= 700
 )
 
 class PrintCallback(TrainerCallback):
