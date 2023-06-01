@@ -59,16 +59,16 @@ def preprocess_function(examples):
 
 tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
-# tokenized_evalset = []
-# for i in range(0,15):
-#     tokenized_evalset.append(tokenized_dataset["test"][i])
-# tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
+tokenized_evalset = []
+for i in range(0,1500):
+    tokenized_evalset.append(tokenized_dataset["test"][i])
+tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
 
 
-# tokenized_trainset = []
-# for i in range(0,150):
-#     tokenized_trainset.append(tokenized_dataset["train"][i])
-# tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
+tokenized_trainset = []
+for i in range(0,15000):
+    tokenized_trainset.append(tokenized_dataset["train"][i])
+tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
 print("Setting Trainer Arg")
 
@@ -77,11 +77,11 @@ training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=32,
-    per_device_eval_batch_size=32,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
     weight_decay=0.01,
     num_train_epochs=10,
-    gradient_accumulation_steps = 1,
+    gradient_accumulation_steps = 4,
     save_total_limit= 3,
     predict_with_generate=True,
     fp16=True,
