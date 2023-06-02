@@ -33,7 +33,7 @@ model = GPT2LMHeadModel.from_pretrained(checkpoint)
 
 # model.cuda()
 
-model.gradient_checkpointing_enable()
+# model.gradient_checkpointing_enable()
 seed_val = 42
 random.seed(seed_val)
 np.random.seed(seed_val)
@@ -72,7 +72,7 @@ tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
 print("Setting Trainer Arg")
 
-model.generation_config.use_cache = False 
+# model.generation_config.use_cache = False 
 training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
