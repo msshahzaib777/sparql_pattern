@@ -59,16 +59,16 @@ def preprocess_function(examples):
 
 tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
-tokenized_evalset = []
-for i in range(0,1500):
-    tokenized_evalset.append(tokenized_dataset["test"][i])
-tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
+# tokenized_evalset = []
+# for i in range(0,1500):
+#     tokenized_evalset.append(tokenized_dataset["test"][i])
+# tokenized_testset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_evalset))    
 
 
-tokenized_trainset = []
-for i in range(0,15000):
-    tokenized_trainset.append(tokenized_dataset["train"][i])
-tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
+# tokenized_trainset = []
+# for i in range(0,15000):
+#     tokenized_trainset.append(tokenized_dataset["train"][i])
+# tokenized_trainset = datasets.Dataset.from_pandas(pd.DataFrame(data=tokenized_trainset))    
 
 print("Setting Trainer Arg")
 
@@ -77,11 +77,11 @@ training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
     weight_decay=0.01,
     num_train_epochs=10,
-    gradient_accumulation_steps = 4,
+    gradient_accumulation_steps = 2,
     save_total_limit= 3,
     predict_with_generate=True,
     fp16=True,
@@ -91,16 +91,16 @@ training_args = Seq2SeqTrainingArguments(
     save_steps= 700
 )
 
-class PrintCallback(TrainerCallback):
-    def on_log(self, args, state, control, logs=None, **kwargs):
-        _ = logs.pop("total_flos", None)
-        if state.is_local_process_zero:
-            print(logs)
+# class PrintCallback(TrainerCallback):
+#     def on_log(self, args, state, control, logs=None, **kwargs):
+#         _ = logs.pop("total_flos", None)
+#         if state.is_local_process_zero:
+#             print(logs)
 
-    def on_step_begin(self, args, state, control, logs=None, **kwargs):
-        print("Step end", logs)
-    def on_step_end(self, args, state, control, logs=None, **kwargs):
-        print("Step begin", logs)
+#     def on_step_begin(self, args, state, control, logs=None, **kwargs):
+#         print("Step end", logs)
+#     def on_step_end(self, args, state, control, logs=None, **kwargs):
+#         print("Step begin", logs)
 
 trainer = Trainer(
     model=model,
@@ -108,7 +108,7 @@ trainer = Trainer(
     train_dataset=tokenized_dataset["train"],
     eval_dataset=tokenized_dataset["test"],
     tokenizer=tokenizer,
-    callbacks=[PrintCallback]
+    # callbacks=[PrintCallback]
 )
 
 print("Training ... ")
