@@ -11,7 +11,7 @@ torch.cuda.empty_cache()
 import gc
 gc.collect()
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-device
+print(device)
 print("setting config")
 MAX_LENGTH = 1024
 BATCH_SIZE = 2
@@ -20,7 +20,7 @@ PAD = "<|pad|>"
 SOS = "<|startoftext|>"
 
 print("loading Data")
-with open('SPARQL_PTRN_600k.pickle', 'rb') as f:
+with open('SPARQL_PTRN_500k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
@@ -77,11 +77,11 @@ training_args = Seq2SeqTrainingArguments(
     output_dir="sparql_model_gpt2_2",
     evaluation_strategy="steps",
     learning_rate=2e-5,
-    per_device_train_batch_size=16,
-    per_device_eval_batch_size=16,
+    per_device_train_batch_size=32,
+    per_device_eval_batch_size=32,
     weight_decay=0.01,
-    num_train_epochs=10,
-    gradient_accumulation_steps = 2,
+    num_train_epochs=5,
+    gradient_accumulation_steps = 1,
     save_total_limit= 3,
     predict_with_generate=True,
     fp16=True,
@@ -117,7 +117,7 @@ trainer.train()
 
 correct = 0
 generated = []
-for i in range(0, 2480):
+for i in range(0, 24800):
     sample = tokenized_dataset["test"][i]
     
     sample_idx = sample['sum_idx']-1
