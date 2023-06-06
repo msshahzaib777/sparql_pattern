@@ -139,4 +139,4 @@ for i in range(0, 24800):
 
 with open('testset.pickle', 'wb') as handle:
     pickle.dump(generated, handle, protocol=pickle.HIGHEST_PROTOCOL)
-print(correct/2480)
+print(correct/24800)
