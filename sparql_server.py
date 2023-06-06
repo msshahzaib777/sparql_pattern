@@ -24,7 +24,7 @@ with open('SPARQL_PTRN_500k.pickle', 'rb') as f:
     dataset = pickle.load(f)
 
 print("loading model")
-checkpoint = "sparql_model_gpt2_2/latest-checkpoint"
+checkpoint = "sparql_model_gpt2_2/checkpoint-25900"
 tokenizer = GPT2Tokenizer.from_pretrained(checkpoint)
 # special_tokens = {'pad_token':'<|pad|>','sep_token':'<|sep|>', 'bos_token': '<|startoftext|>'}
 # num_add_toks = tokenizer.add_special_tokens(special_tokens)
@@ -80,7 +80,7 @@ training_args = Seq2SeqTrainingArguments(
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
     weight_decay=0.01,
-    num_train_epochs=4,
+    num_train_epochs=5,
     gradient_accumulation_steps = 8,
     save_total_limit= 2,
     predict_with_generate=True,
