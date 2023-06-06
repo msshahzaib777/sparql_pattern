@@ -80,15 +80,15 @@ training_args = Seq2SeqTrainingArguments(
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
     weight_decay=0.01,
-    num_train_epochs=5,
+    num_train_epochs=4,
     gradient_accumulation_steps = 8,
-    save_total_limit= 3,
+    save_total_limit= 2,
     predict_with_generate=True,
     fp16=True,
-    logging_steps= 700,
+    logging_steps= 2000,
 #    logging_dir='./logs',
-    eval_steps= 700,
-    save_steps= 700
+    eval_steps= 2000,
+    save_steps= 2000
 )
 
 # class PrintCallback(TrainerCallback):
@@ -113,7 +113,7 @@ trainer = Trainer(
 
 print("Training ... ")
 
-trainer.train()
+trainer.train(resume_from_checkpoint=True)
 
 correct = 0
 generated = []
@@ -136,4 +136,7 @@ for i in range(0, 24800):
     generated.append({"sample": sample, 'predicted query': predicted_query})
     if(predicted_query.replace(".", " .") == actual_query.replace("?", "") ):
         correct +=1
+
+with open('testset.pickle', 'wb') as handle:
+    pickle.dump(generated, handle, protocol=pickle.HIGHEST_PROTOCOL)
 print(correct/2480)
